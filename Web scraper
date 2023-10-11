@@ -1,0 +1,31 @@
+import requests
+from bs4 import BeautifulSoup
+import csv
+
+
+url = 'https://www.accuweather.com/en/in/india-weather'
+
+
+response = requests.get(url)
+
+
+if response.status_code == 200:
+    soup = BeautifulSoup(response.text, 'html.parser')
+    temperature = soup.find('span', class_='temperature').text
+    humidity = soup.find('span', class_='humidity').text
+
+    
+    with open('weather_data.csv', 'w', newline='') as csvfile:
+        fieldnames = ['Temperature', 'Humidity']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+        
+        writer.writeheader()
+
+        
+        writer.writerow({'Temperature': temperature, 'Humidity': humidity})
+
+    print('Weather data scraped and saved to weather_data.csv')
+else:
+    print('Failed to retrieve the web page')
+
