@@ -1,0 +1,42 @@
+from forex_python.converter import CurrencyRates, CurrencyCodes
+
+
+c = CurrencyRates()
+cc = CurrencyCodes()
+
+
+exchange_rates = c.get_rates('USD')
+
+def display_supported_currencies():
+   
+    supported_currencies = cc.get_symbol()
+    print("Supported Currencies:")
+    for code, symbol in supported_currencies.items():
+        print(f"{code} - {symbol}")
+
+def currency_converter():
+    print("Welcome to the Currency Converter!")
+    display_supported_currencies()
+    
+    try:
+        amount = float(input("Enter the amount to convert: "))
+        from_currency = input("Enter the source currency code (e.g., USD): ").upper()
+        to_currency = input("Enter the target currency code (e.g., EUR): ").upper()
+
+        if from_currency in exchange_rates and to_currency in exchange_rates:
+          
+            result = c.convert(from_currency, to_currency, amount)
+            exchange_rate = exchange_rates[to_currency]
+            
+           
+            print(f"{amount} {from_currency} = {result} {to_currency}")
+            print(f"Exchange rate used: 1 {from_currency} = {exchange_rate} {to_currency}")
+        else:
+            print("Invalid currency code. Please enter valid currency codes.")
+    except ValueError:
+        print("Invalid input. Please enter a valid numeric amount.")
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+
+if __name__ == "__main__":
+    currency_converter()
