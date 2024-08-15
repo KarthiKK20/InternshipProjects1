@@ -1,31 +1,24 @@
 import requests
 from bs4 import BeautifulSoup
-import csv
 
-
-url = 'https://www.accuweather.com/en/in/india-weather'
-
-
-response = requests.get(url)
-
-
-if response.status_code == 200:
-    soup = BeautifulSoup(response.text, 'html.parser')
-    temperature = soup.find('span', class_='temperature').text
-    humidity = soup.find('span', class_='humidity').text
-
+def scrape_titles(url):
     
-    with open('weather_data.csv', 'w', newline='') as csvfile:
-        fieldnames = ['Temperature', 'Humidity']
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-
+    response = requests.get(url)
+    
+    
+    if response.status_code == 200:
         
-        writer.writeheader()
-
+        soup = BeautifulSoup(response.content, 'html.parser')
         
-        writer.writerow({'Temperature': temperature, 'Humidity': humidity})
+        
+        titles = soup.find_all('h2')
+        
+        
+        for i, title in enumerate(titles, start=1):
+            print(f"{i}. {title.get_text()}")
+    else:
+        print(f"Failed to retrieve content. Status code: {response.status_code}")
 
-    print('Weather data scraped and saved to weather_data.csv')
-else:
-    print('Failed to retrieve the web page')
 
+url = 'https://theworldtravelguy.com/'  
+scrape_titles(url)
