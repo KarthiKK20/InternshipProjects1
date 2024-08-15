@@ -1,42 +1,48 @@
-from forex_python.converter import CurrencyRates, CurrencyCodes
+import requests
 
-
-c = CurrencyRates()
-cc = CurrencyCodes()
-
-
-exchange_rates = c.get_rates('USD')
-
-def display_supported_currencies():
-   
-    supported_currencies = cc.get_symbol()
-    print("Supported Currencies:")
-    for code, symbol in supported_currencies.items():
-        print(f"{code} - {symbol}")
-
-def currency_converter():
-    print("Welcome to the Currency Converter!")
-    display_supported_currencies()
+class CurrencyConvertor:
+    rates = {}
     
-    try:
-        amount = float(input("Enter the amount to convert: "))
-        from_currency = input("Enter the source currency code (e.g., USD): ").upper()
-        to_currency = input("Enter the target currency code (e.g., EUR): ").upper()
+    def __init__(self, url):
+        try:
+            response = requests.get(url)
+            data = response.json()
 
-        if from_currency in exchange_rates and to_currency in exchange_rates:
-          
-            result = c.convert(from_currency, to_currency, amount)
-            exchange_rate = exchange_rates[to_currency]
-            
-           
-            print(f"{amount} {from_currency} = {result} {to_currency}")
-            print(f"Exchange rate used: 1 {from_currency} = {exchange_rate} {to_currency}")
-        else:
-            print("Invalid currency code. Please enter valid currency codes.")
-    except ValueError:
-        print("Invalid input. Please enter a valid numeric amount.")
-    except Exception as e:
-        print(f"An error occurred: {str(e)}")
+            if response.status_code != 200:
+                raise Exception(data.get("error-type", "Failed to fetch data"))
+
+            self.rates = data["conversion_rates"]
+        except Exception as e:
+            print("Error:", e)
+            self.rates = None
+
+    def convert(self, from_currency, to_currency, amount):
+        if self.rates is None:
+            print("Conversion rates not available.")
+            return
+
+        initial_amount = amount
+        if from_currency != 'USD':
+            if from_currency not in self.rates:
+                print(f"Currency '{from_currency}' is not supported.")
+                return
+            amount = amount / self.rates[from_currency]
+
+        if to_currency not in self.rates:
+            print(f"Currency '{to_currency}' is not supported.")
+            return
+
+        amount = round(amount * self.rates[to_currency], 2)
+        print(f'{initial_amount} {from_currency} = {amount} {to_currency}')
 
 if __name__ == "__main__":
-    currency_converter()
+    YOUR_API_KEY = 'Enter your api key'
+    url = f'https://v6.exchangerate-api.com/v6/{YOUR_API_KEY}/latest/USD'
+    
+    c = CurrencyConvertor(url)
+    
+    from_currency = input("From Currency (e.g., USD, EUR): ").upper()
+    to_currency = input("To Currency (e.g., USD, EUR): ").upper()
+    amount = float(input("Amount: "))
+    
+    c.convert(from_currency, to_currency, amount)
